@@ -47,20 +47,8 @@
 
 
         // --- Variables de Dades (MUTABLES PER PODER GESTIONAR-LES) ---
-        private val totesCategories = mutableListOf( // 👈 CANVI: Ara és MutableList
-            Categoria(id = "c1", nom = "Fruita i Verdura"),
-            Categoria(id = "c2", nom = "Làctics"),
-            Categoria(id = "c3", nom = "Neteja")
-        )
-
-        private val totsProductes = mutableListOf(
-            Producte(idCategoria = "c1", nom = "Pomes Fuji", comprat = false),
-            Producte(idCategoria = "c1", nom = "Tomàquets Pera", comprat = true),
-            Producte(idCategoria = "c2", nom = "Llet Semi", comprat = false),
-            Producte(idCategoria = "c2", nom = "Iogurts Naturals", comprat = false),
-            Producte(idCategoria = "c3", nom = "Detergent Roba", comprat = true),
-            Producte(idCategoria = "c3", nom = "Esponja", comprat = false)
-        )
+        private val totesCategories = mutableListOf<Categoria>()
+        private val totsProductes = mutableListOf<Producte>()
 
         private var categoriaSeleccionadaId: String? = null
 
@@ -98,6 +86,8 @@
             btnManageCategories.setOnClickListener {
                 mostrarDialogGestioCategories()
             }
+
+            carregarDadesDeFirestore()
         }
 
         // --- MÈTODE PER CONFIGURAR L'SPINNER ---
@@ -148,7 +138,13 @@
             val index = totsProductes.indexOfFirst { it.id == producte.id }
             if (index != -1) {
                 totsProductes[index].comprat = producte.comprat
-                Toast.makeText(this, "Estat de '${producte.nom}' actualitzat.", Toast.LENGTH_SHORT).show()
+
+                // Actualiza Firestore
+                db.collection("productes").document(producte.id)
+                    .update("comprat", producte.comprat)
+
+                // Refresca la lista filtrada por categoría
+                categoriaSeleccionadaId?.let { carregarProductesPerCategoria(it) }
             }
         }
 
