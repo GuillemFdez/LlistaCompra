@@ -21,6 +21,8 @@
     import java.util.UUID
     import com.google.firebase.firestore.ktx.firestore
     import com.google.firebase.ktx.Firebase
+    import com.google.firebase.auth.ktx.auth
+
 
     // --- 1. MODELS DE DADES (SIMULACIÓ) ---
     data class Categoria(
@@ -44,7 +46,7 @@
         // 👈 NOU: Botó per gestionar categories (Assumeix ID 'button_manage_categories' a activity_main.xml)
         private lateinit var btnManageCategories: ImageButton
         private val db = Firebase.firestore
-
+        private val uid = Firebase.auth.currentUser?.uid
 
         // --- Variables de Dades (MUTABLES PER PODER GESTIONAR-LES) ---
         private val totesCategories = mutableListOf<Categoria>()
@@ -90,6 +92,28 @@
             carregarDadesDeFirestore()
         }
 
+        // Para cargar listas del usuario:
+        private fun carregarLlistes() {
+            if (uid == null) return
+
+            db.collection("listas")
+                .whereEqualTo("creadorId", uid)
+                .get()
+                .addOnSuccessListener { result ->
+                    val llistes = result.map {
+                        it.data // Mapa de cada lista
+                    }
+                    // Aquí podrías llenar un Spinner de listas en vez de categorías
+                }
+
+            db.collection("listas")
+                .whereArrayContains("sharedWith", uid)
+                .get()
+                .addOnSuccessListener { result ->
+                    val llistesCompartides = result.map { it.data }
+                    // Añadir estas listas al Spinner también
+                }
+        }
         // --- MÈTODE PER CONFIGURAR L'SPINNER ---
         private fun setupSpinner(selectFirst: Boolean = true) {
             if (totesCategories.isEmpty()) {

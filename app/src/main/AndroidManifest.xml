@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.guillem.llistacompra"
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
@@ -11,15 +12,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LlistaCompra">
+
+        <!-- LoginActivity: será la primera pantalla -->
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- MainActivity: solo accesible si el usuario está logueado -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"/>
     </application>
 
 </manifest>
