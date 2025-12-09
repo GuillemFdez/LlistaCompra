@@ -1,38 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="24dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#F5F5F5">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Llista Compra 🛒"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="40dp"
+        android:textColor="#333333"/>
 
     <EditText
         android:id="@+id/edit_email"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#FFFFFF"
         android:hint="Email"
         android:inputType="textEmailAddress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/edit_password"
-        android:hint="Password"
-        android:inputType="textPassword"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
+        android:layout_height="50dp"
+        android:background="#FFFFFF"
+        android:hint="Contrasenya"
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp"/>
 
     <Button
         android:id="@+id/button_login"
-        android:text="Login"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"/>
+        android:layout_height="60dp"
+        android:text="INICIAR SESSIÓ"
+        android:backgroundTint="#2196F3"
+        android:layout_marginBottom="12dp"/>
 
     <Button
         android:id="@+id/button_register"
-        android:text="Registrar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"/>
+        android:layout_height="60dp"
+        android:text="REGISTRAR-SE"
+        android:backgroundTint="#4CAF50"/>
 
 </LinearLayout>

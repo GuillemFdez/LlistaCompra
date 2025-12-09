@@ -20,6 +20,12 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        // Comprovar si l'usuari ja té sessió iniciada
+        if (Firebase.auth.currentUser != null) {
+            anarAMainActivity()
+            return
+        }
+
         emailInput = findViewById(R.id.edit_email)
         passwordInput = findViewById(R.id.edit_password)
         loginButton = findViewById(R.id.button_login)
@@ -40,8 +46,7 @@ class LoginActivity : AppCompatActivity() {
         Firebase.auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+                    anarAMainActivity()
                 } else {
                     Toast.makeText(this, "Error de login: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -60,11 +65,15 @@ class LoginActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     Toast.makeText(this, "Registro correcto", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+                    anarAMainActivity()
                 } else {
                     Toast.makeText(this, "Error de registro: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun anarAMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 }
