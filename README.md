@@ -25,7 +25,7 @@ Productos
 ---
 
 Funcionalidad extra implementada
-- Cada producte pot tenir informació associada (com la tenda a la que pertany, etiquetes, preu, etc).
+- Cada producto puede tener información asociada (como la tienda a la que pertenece, etiquetas, precio, etc).
 
 ---
 
