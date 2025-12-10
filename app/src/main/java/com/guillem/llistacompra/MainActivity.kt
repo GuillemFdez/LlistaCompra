@@ -12,6 +12,7 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -43,10 +44,12 @@ data class Categoria(
 
 data class Producte(
     val id: String = UUID.randomUUID().toString(),
-    val idCategoria: String,
-    var nom: String,
-    var comprat: Boolean = false
+    var idCategoria: String = "",
+    var nom: String = "",
+    var comprat: Boolean = false,
+    var info: String = "" // <--- Nou camp afegit
 )
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,10 +58,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerViewProductes: RecyclerView
     private lateinit var producteAdapter: ProducteAdapter
     private lateinit var btnManageCategories: ImageButton
-    
+
     private val db = Firebase.firestore
     private val auth = Firebase.auth
-    
+
     // --- Estat de l'Aplicació ---
     private var llistaActual: Llista? = null
     private var categoriesDeLaLlista = mutableListOf<Categoria>()
@@ -143,8 +146,8 @@ class MainActivity : AppCompatActivity() {
             .whereEqualTo("propietariId", uid)
             .get()
             .addOnSuccessListener { resultPropies ->
-                val llistesTrobades = resultPropies.map { 
-                    Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", (it.get("usuarisCompartits") as? List<String>)?.toMutableList() ?: mutableListOf()) 
+                val llistesTrobades = resultPropies.map {
+                    Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", (it.get("usuarisCompartits") as? List<String>)?.toMutableList() ?: mutableListOf())
                 }.toMutableList()
 
                 // També busquem llistes compartides amb el meu EMAIL (més fàcil per compartir)
@@ -153,7 +156,7 @@ class MainActivity : AppCompatActivity() {
                     .get()
                     .addOnSuccessListener { resultCompartides ->
                         val llistesCompartides = resultCompartides.map {
-                             Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", (it.get("usuarisCompartits") as? List<String>)?.toMutableList() ?: mutableListOf()) 
+                            Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", (it.get("usuarisCompartits") as? List<String>)?.toMutableList() ?: mutableListOf())
                         }
                         llistesTrobades.addAll(llistesCompartides)
 
@@ -175,7 +178,7 @@ class MainActivity : AppCompatActivity() {
     private fun crearLlistaInicial() {
         val uid = auth.currentUser!!.uid
         val novaLlista = Llista(nom = "Llista Personal", propietariId = uid)
-        
+
         db.collection("llistes").document(novaLlista.id).set(novaLlista)
             .addOnSuccessListener {
                 canviarLlistaActual(novaLlista)
@@ -186,7 +189,7 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarDialogNovaLlista() {
         val input = EditText(this)
         input.hint = "Nom de la nova llista (ex: Supermercat)"
-        
+
         AlertDialog.Builder(this)
             .setTitle("Crear Nova Llista")
             .setView(wrapInContainer(input))
@@ -204,24 +207,24 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel·lar", null)
             .show()
     }
-    
+
     private fun mostrarDialegSeleccionarLlista() {
         val uid = auth.currentUser!!.uid
         val email = auth.currentUser!!.email ?: ""
-        
+
         // Recuperem llistes de nou per tenir-les fresques
         // (En una app real utilitzariem un ViewModel o LiveData)
         val llistesTemp = mutableListOf<Llista>()
-        
+
         // Callback hell simplificat:
         db.collection("llistes").whereEqualTo("propietariId", uid).get().addOnSuccessListener { r1 ->
             llistesTemp.addAll(r1.map { Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", mutableListOf()) })
-            
+
             db.collection("llistes").whereArrayContains("usuarisCompartits", email).get().addOnSuccessListener { r2 ->
                 llistesTemp.addAll(r2.map { Llista(it.id, it.getString("nom")?:"", it.getString("propietariId")?:"", mutableListOf()) })
-                
+
                 val noms = llistesTemp.map { if(it.propietariId == uid) it.nom else "${it.nom} (Compartida)" }.toTypedArray()
-                
+
                 AlertDialog.Builder(this)
                     .setTitle("Els teus espais de compra")
                     .setItems(noms) { _, which ->
@@ -234,10 +237,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarDialogCompartirLlista() {
         val llista = llistaActual ?: return
-        
+
         val input = EditText(this)
         input.hint = "Email de l'usuari (ex: amic@gmail.com)"
-        
+
         AlertDialog.Builder(this)
             .setTitle("Compartir '${llista.nom}'")
             .setMessage("Escriu el correu de la persona amb qui vols compartir aquesta llista:")
@@ -278,11 +281,11 @@ class MainActivity : AppCompatActivity() {
                 for (doc in resultCat) {
                     categoriesDeLaLlista.add(Categoria(doc.id, doc.getString("llistaId")?:"", doc.getString("nom")?:""))
                 }
-                
+
                 // 2. Carregar Productes d'aquesta llista (filtrant per l'ID de categoria o si guardessim llistaId al producte)
                 // Com que el producte té idCategoria, primer necessitem les categories, però és més eficient si el producte també tingués llistaId.
                 // Per compatibilitat amb el teu codi anterior, agafarem TOTS els productes de les categories trobades.
-                
+
                 // Opció eficient: Guardar llistaId també al Producte.
                 // Opció actual (Query manual):
                 db.collection("productes")
@@ -290,21 +293,21 @@ class MainActivity : AppCompatActivity() {
                     .addOnSuccessListener { resultProd ->
                         productesDeLaLlista.clear()
                         val idsCategoriesDeLaLlista = categoriesDeLaLlista.map { it.id }.toSet()
-                        
+
                         for (doc in resultProd) {
                             val catId = doc.getString("idCategoria") ?: ""
                             // Filtrem en client els productes que pertanyen a les categories de la llista actual
                             if (idsCategoriesDeLaLlista.contains(catId)) {
                                 val p = Producte(
-                                    doc.id, 
-                                    catId, 
-                                    doc.getString("nom")?:"", 
-                                    doc.getBoolean("comprat")?:false
+                                    doc.id,catId,
+                                    doc.getString("nom") ?: "",
+                                    doc.getBoolean("comprat") ?: false,
+                                    doc.getString("info") ?: "" // <--- Llegim la info de Firestore
                                 )
                                 productesDeLaLlista.add(p)
                             }
                         }
-                        
+
                         configurarSpinnerCategories()
                     }
             }
@@ -314,7 +317,7 @@ class MainActivity : AppCompatActivity() {
         if (categoriesDeLaLlista.isEmpty()) {
             categoriaSeleccionadaId = null
             producteAdapter.updateList(mutableListOf())
-            
+
             // Adapter buit o missatge
             val llistaBuida = listOf("Crea una categoria...")
             spinnerCategories.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, llistaBuida)
@@ -325,7 +328,7 @@ class MainActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, noms)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategories.adapter = adapter
-        
+
         // Listener selecció
         spinnerCategories.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
@@ -334,11 +337,11 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
-        
+
         // Seleccionar el primer per defecte
         if (categoriesDeLaLlista.isNotEmpty()) {
-             categoriaSeleccionadaId = categoriesDeLaLlista[0].id
-             filtrarProductesPerCategoria(categoriaSeleccionadaId!!)
+            categoriaSeleccionadaId = categoriesDeLaLlista[0].id
+            filtrarProductesPerCategoria(categoriaSeleccionadaId!!)
         }
     }
 
@@ -352,7 +355,7 @@ class MainActivity : AppCompatActivity() {
     // Categories
     private fun mostrarDialogGestioCategories() {
         if (llistaActual == null) return
-        
+
         val accions = categoriesDeLaLlista.map { it.nom } + listOf("➕ Nova Categoria")
         AlertDialog.Builder(this)
             .setTitle("Categories de ${llistaActual?.nom}")
@@ -370,7 +373,7 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarDialogAfegirCategoria() {
         val input = EditText(this)
         input.hint = "Nom categoria (ex: Carnisseria)"
-        
+
         AlertDialog.Builder(this)
             .setTitle("Afegir Categoria")
             .setView(wrapInContainer(input))
@@ -391,7 +394,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel·lar", null)
             .show()
     }
-    
+
     private fun mostrarDialogEdicioCategoria(cat: Categoria) {
         AlertDialog.Builder(this)
             .setTitle(cat.nom)
@@ -420,7 +423,7 @@ class MainActivity : AppCompatActivity() {
                         categoriesDeLaLlista.remove(cat)
                         productesDeLaLlista.removeAll { it.idCategoria == cat.id }
                         configurarSpinnerCategories()
-                        
+
                         // Opcional: Eliminar productes de la DB (Batch write seria millor)
                     }
                 }
@@ -434,10 +437,10 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Primer crea una categoria!", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         val input = EditText(this)
         input.hint = "Nom producte (ex: Llet)"
-        
+
         AlertDialog.Builder(this)
             .setTitle("Afegir Producte")
             .setView(wrapInContainer(input))
@@ -446,7 +449,7 @@ class MainActivity : AppCompatActivity() {
                 if (nom.isNotEmpty()) {
                     val nouProd = Producte(idCategoria = categoriaSeleccionadaId!!, nom = nom)
                     // Optimització: Podries guardar llistaId aquí també per facilitar queries
-                    
+
                     db.collection("productes").document(nouProd.id).set(nouProd)
                         .addOnSuccessListener {
                             productesDeLaLlista.add(nouProd)
@@ -470,20 +473,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogEditarProducte(prod: Producte) {
-        val input = EditText(this)
-        input.setText(prod.nom)
-        
+        val inputNom = EditText(this)
+        inputNom.setText(prod.nom)
+        inputNom.hint = "Nom del producte"
+
+        val inputInfo = EditText(this)
+        inputInfo.setText(prod.info) // <--- Ara sí mostrem la info actual
+        inputInfo.hint = "Informació extra"
+
+        // Layout vertical
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.addView(inputNom)
+        layout.addView(inputInfo)
+
         AlertDialog.Builder(this)
             .setTitle("Editar Producte")
-            .setView(wrapInContainer(input))
+            .setView(wrapInContainer(layout))
             .setPositiveButton("Guardar") { _, _ ->
-                val nouNom = input.text.toString().trim()
+                val nouNom = inputNom.text.toString().trim()
+                val infoExtra = inputInfo.text.toString().trim() // <--- Agafem el text nou
+
                 if (nouNom.isNotEmpty()) {
+                    // Actualitzem l'objecte local
                     prod.nom = nouNom
-                    db.collection("productes").document(prod.id).update("nom", nouNom)
+                    prod.info = infoExtra // <--- Actualitzem el model local
+
+                    // Preparem les dades per Firestore
+                    val updates = hashMapOf<String, Any>(
+                        "nom" to nouNom,
+                        "info" to infoExtra // <--- Enviem la info a la base de dades
+                    )
+
+                    db.collection("productes").document(prod.id).update(updates)
                     filtrarProductesPerCategoria(prod.idCategoria)
                 }
             }
+            .setNegativeButton("Cancel·lar", null)
             .show()
     }
 

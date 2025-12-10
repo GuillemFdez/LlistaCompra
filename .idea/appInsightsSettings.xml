@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.guillem.llistacompra" />
+                  <option name="mobileSdkAppId" value="1:979246772801:android:3b1dc0167035857d3e4cc0" />
+                  <option name="projectId" value="listacompraapp-c38a2" />
+                  <option name="projectNumber" value="979246772801" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
