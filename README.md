@@ -25,8 +25,7 @@ Productos
 ---
 
 Funcionalidad extra implementada
-
-
+- Cada producte pot tenir informació associada (com la tenda a la que pertany, etiquetes, preu, etc).
 
 ---
 
