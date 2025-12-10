@@ -29,15 +29,6 @@ Funcionalidad extra implementada
 
 ---
 
-Tecnologías utilizadas
-
-- **Kotlin**
-- **Jetpack Compose**
-- **Firebase Authentication**
-- **Firebase Firestore** (sincronización en tiempo real)
-- **MVVM Architecture**
-- **Material 3 Design**
-
 📦 Descargar APK
 
 Puedes descargar la versión más reciente desde aqui:
